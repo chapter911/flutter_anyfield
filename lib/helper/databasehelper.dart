@@ -24,7 +24,8 @@ class DataBaseHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         id_lapangan TEXT,
         tanggal TEXT,
-        jam TEXT,
+        jam_mulai INTEGER,
+        jam_akhir INTEGER,
         createdby TEXT
       )
       """);

@@ -21,11 +21,16 @@ class _DashboardPageState extends State<DashboardPage> {
     const ProfilePage()
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _selectedPage = const HomePage();
+  }
+
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedPage = _dashboard[index];
-      _selectedIndex = index;
-    });
+    _selectedPage = _dashboard[index];
+    _selectedIndex = index;
+    setState(() {});
   }
 
   @override
