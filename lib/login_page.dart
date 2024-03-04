@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
               height: 20,
             ),
             Text(
-              "ANY FIELD",
+              "ANYFIELD",
               style: TextStyle(
                 color: Colors.green[800],
                 fontWeight: FontWeight.bold,

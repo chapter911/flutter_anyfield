@@ -15,6 +15,9 @@ class _HistoryPageState extends State<HistoryPage> {
 
   final List<Widget> _history = [];
 
+  List<String> items = ['Semua', 'Badminton', 'Bola', 'Futsal', 'Tenis'];
+  String _selectedItem = 'Semua';
+
   @override
   void initState() {
     super.initState();
@@ -32,34 +35,50 @@ class _HistoryPageState extends State<HistoryPage> {
         padding: const EdgeInsets.all(10),
         child: Column(
           children: [
-            Row(
-              children: [
-                Flexible(
-                  flex: 1,
-                  child: TextField(
-                    controller: _tanggal,
-                    readOnly: true,
-                    onTap: () {
-                      showDatePicker(
-                              context: context,
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime(2025))
-                          .then((value) {
-                        if (value != null) {
-                          _tanggal.text = value.toString().substring(0, 10);
-                          getData();
-                        }
-                      });
-                    },
-                    decoration: Style().dekorasiInput(
-                      hint: "Tanggal",
-                      icon: const Icon(
-                        Icons.calendar_month,
-                      ),
-                    ),
-                  ),
+            TextField(
+              controller: _tanggal,
+              readOnly: true,
+              onTap: () {
+                showDatePicker(
+                        context: context,
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime(2025))
+                    .then((value) {
+                  if (value != null) {
+                    _tanggal.text = value.toString().substring(0, 10);
+                    getData();
+                  }
+                });
+              },
+              decoration: Style().dekorasiInput(
+                hint: "Tanggal",
+                icon: const Icon(
+                  Icons.calendar_month,
                 ),
-              ],
+              ),
+            ),
+            const SizedBox(
+              height: 5,
+            ),
+            SizedBox(
+              width: double.maxFinite,
+              child: DropdownButton<String>(
+                isExpanded: true,
+                value: _selectedItem,
+                items: items
+                    .map((item) => DropdownMenuItem<String>(
+                          value: item,
+                          child: Text(item),
+                        ))
+                    .toList(),
+                onChanged: (val) {
+                  setState(() {
+                    _selectedItem = val.toString();
+                  });
+                  getData();
+                },
+                hint: const Text('Select an item'),
+              ),
             ),
             const SizedBox(
               height: 5,
@@ -76,6 +95,11 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   void getData() {
+    var where = "";
+    if (_selectedItem != "Semua") {
+      where =
+          " AND LOWER(lapangan.kategori) = '${_selectedItem.toLowerCase()}' ";
+    }
     DataBaseHelper.customQuery("""
             SELECT
               lapangan.nama_lapangan,
@@ -87,8 +111,9 @@ class _HistoryPageState extends State<HistoryPage> {
             FROM booking
             LEFT JOIN lapangan
             ON booking.id_lapangan = lapangan.id_lapangan
-            WHERE booking.tanggal = '${_tanggal.text}'
+            WHERE booking.tanggal = '${_tanggal.text}' $where
             """).then((value) {
+      _history.clear();
       if (value.isNotEmpty) {
         for (int i = 0; i < value.length; i++) {
           _history.add(
@@ -132,7 +157,6 @@ class _HistoryPageState extends State<HistoryPage> {
         }
         setState(() {});
       } else {
-        _history.clear();
         Get.snackbar(
             "Maaf", "Tidak Ada Pesanan Lapangan Pada tanggal yang di pilih");
         setState(() {});

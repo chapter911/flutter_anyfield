@@ -23,13 +23,6 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void initState() {
     super.initState();
-    _username.text = "tes";
-    _name.text = "tes";
-    _phone.text = "081234567890";
-    _email.text = "tes@gmail.com";
-    _password.text = "12345";
-    _confirmation.text = "12345";
-    setState(() {});
   }
 
   @override
