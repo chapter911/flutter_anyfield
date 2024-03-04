@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_anyfield/helper/databasehelper.dart';
+import 'package:flutter_anyfield/helper/sharedpreferences.dart';
 import 'package:flutter_anyfield/style/style.dart';
 import 'package:get/get.dart';
 
@@ -13,15 +14,19 @@ class HistoryPage extends StatefulWidget {
 class _HistoryPageState extends State<HistoryPage> {
   final TextEditingController _tanggal = TextEditingController();
 
-  final List<Widget> _history = [];
+  List<Widget> _history = [];
 
   List<String> items = ['Semua', 'Badminton', 'Bola', 'Futsal', 'Tenis'];
   String _selectedItem = 'Semua';
+  var username = "";
 
   @override
   void initState() {
     super.initState();
     _tanggal.text = DateTime.now().toString().substring(0, 10);
+    DataSharedPreferences().readString("username").then((value) {
+      username = value!;
+    });
     getData();
   }
 
@@ -95,6 +100,8 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   void getData() {
+    _history = [];
+    setState(() {});
     var where = "";
     if (_selectedItem != "Semua") {
       where =
@@ -104,6 +111,7 @@ class _HistoryPageState extends State<HistoryPage> {
             SELECT
               lapangan.nama_lapangan,
               lapangan.kategori,
+              booking.id,
               booking.tanggal,
               booking.jam_mulai,
               booking.jam_akhir,
@@ -113,7 +121,6 @@ class _HistoryPageState extends State<HistoryPage> {
             ON booking.id_lapangan = lapangan.id_lapangan
             WHERE booking.tanggal = '${_tanggal.text}' $where
             """).then((value) {
-      _history.clear();
       if (value.isNotEmpty) {
         for (int i = 0; i < value.length; i++) {
           _history.add(
@@ -122,6 +129,55 @@ class _HistoryPageState extends State<HistoryPage> {
               elevation: 10,
               child: Row(
                 children: [
+                  Flexible(
+                    flex: 1,
+                    child: Center(
+                      child: IconButton(
+                        onPressed: () {
+                          if (value[i]['createdby'] == username) {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text("Hapus Pesanan Anda?"),
+                                actions: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Get.back();
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.grey),
+                                    child: const Text("Batal"),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Get.back();
+                                      DataBaseHelper.deleteWhere(
+                                              "booking", "id=?", value[i]['id'])
+                                          .then((value) {
+                                        _history = [];
+                                        setState(() {});
+                                        getData();
+                                      });
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.red),
+                                    child: const Text("Hapus"),
+                                  ),
+                                ],
+                              ),
+                            );
+                          } else {
+                            Get.snackbar("Maaf",
+                                "Anda tidak dapat menghapus pesanan orang lain");
+                          }
+                        },
+                        icon: const Icon(
+                          Icons.delete,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                  ),
                   Flexible(
                     flex: 1,
                     child: Image.asset(
@@ -133,21 +189,23 @@ class _HistoryPageState extends State<HistoryPage> {
                     width: 10,
                   ),
                   Flexible(
-                    flex: 3,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          value[i]['nama_lapangan'],
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
+                    flex: 4,
+                    child: Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            value[i]['nama_lapangan'],
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        Text(
-                          "${value[i]['tanggal']} ${value[i]['jam_mulai'] < 10 ? '0' : ''}${value[i]['jam_mulai']}:00 s/d ${value[i]['jam_akhir'] < 10 ? '0' : ''}${value[i]['jam_akhir']}:00",
-                        ),
-                        Text("Dipesan oleh : ${value[i]['createdby']}"),
-                      ],
+                          Text(
+                            "${value[i]['tanggal']} ${value[i]['jam_mulai'] < 10 ? '0' : ''}${value[i]['jam_mulai']}:00 s/d ${value[i]['jam_akhir'] < 10 ? '0' : ''}${value[i]['jam_akhir']}:00",
+                          ),
+                          Text("Dipesan oleh : ${value[i]['createdby']}"),
+                        ],
+                      ),
                     ),
                   ),
                 ],

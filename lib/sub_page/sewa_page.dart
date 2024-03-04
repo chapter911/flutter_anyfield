@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_anyfield/helper/databasehelper.dart';
@@ -21,6 +23,9 @@ class _SewaPageState extends State<SewaPage> {
   final TextEditingController _tanggal = TextEditingController();
   final TextEditingController _jam = TextEditingController();
   final TextEditingController _durasi = TextEditingController();
+
+  List<String> items = ['BANK BRI', 'BANK BCA', 'BANK MANDIRI', 'BANK BNI'];
+  String _selectedItem = 'BANK BRI';
 
   @override
   void initState() {
@@ -130,6 +135,36 @@ class _SewaPageState extends State<SewaPage> {
                 icon: const Icon(Icons.timelapse),
               ),
             ),
+            const SizedBox(
+              height: 10,
+            ),
+            Container(
+              width: double.maxFinite,
+              padding: const EdgeInsets.only(left: 5, right: 5),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.grey,
+                  width: 1.0,
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: DropdownButton<String>(
+                isExpanded: true,
+                value: _selectedItem,
+                items: items
+                    .map((item) => DropdownMenuItem<String>(
+                          value: item,
+                          child: Text(item),
+                        ))
+                    .toList(),
+                onChanged: (val) {
+                  setState(() {
+                    _selectedItem = val.toString();
+                  });
+                },
+                hint: const Text('Select an item'),
+              ),
+            ),
           ],
         ),
       ),
@@ -141,6 +176,8 @@ class _SewaPageState extends State<SewaPage> {
               title: const Center(
                 child: Text("Sewa Lapangan?"),
               ),
+              content: Text(
+                  "Harap transfer ke:\nrekening : ${Random().nextInt(4294967295)}"),
               actions: [
                 ElevatedButton(
                   onPressed: () {
